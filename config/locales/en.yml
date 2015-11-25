@@ -29,6 +29,7 @@ en:
   field_interval_modifier: "Interval modifier"
   field_fixed_schedule: "Fixed schedule?"
   field_recur_based_on_start_date: "Recur based on start date?"
+  field_recur_subtasks: "Recur subtasks?"
   field_recurrence: "Recurrence"
   field_please_select: "--- Please select ---"
   

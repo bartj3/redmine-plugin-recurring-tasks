@@ -13,6 +13,7 @@
     <% end -%>
     <p><%= f.check_box :fixed_schedule %></p>
     <p><%= f.check_box :recur_based_on_start_date %></p>
+    <p><%= f.check_box :recur_subtasks %></p>
   </div>
   <%= f.submit %>
   <%= link_to l(:button_cancel), :back %>
