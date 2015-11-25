@@ -16,4 +16,14 @@ class RecurringTaskTest < ActiveSupport::TestCase
       task.recur_issue_if_needed!
     end
   end
+
+  def test_based_on_start_date_validation
+    task = RecurringTask.find fixture(:fixed_daily_recurrence)
+    task.issue.update(start_date: 10.days.ago, due_date: Date.today-5.days)
+    task.update(interval_number: 10)
+
+    assert_equal task.next_scheduled_recurrence, task.issue.due_date+10.days
+    task.update(recur_based_on_start_date: true)
+    assert_equal task.next_scheduled_recurrence, task.issue.start_date+10.days
+  end
 end

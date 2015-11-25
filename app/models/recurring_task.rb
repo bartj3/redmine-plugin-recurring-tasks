@@ -4,7 +4,7 @@ class RecurringTask < ActiveRecord::Base
   belongs_to :issue, :foreign_key => 'current_issue_id'
   has_one :project, :through => :issue
 
-  attr_accessible :id, :current_issue_id, :interval_number, :interval_modifier, :interval_unit, :fixed_schedule # list all fields that you want to be accessible here
+  attr_accessible :id, :current_issue_id, :interval_number, :interval_modifier, :interval_unit, :fixed_schedule, :recur_based_on_start_date # list all fields that you want to be accessible here
   
   # these are the flags used in the database to denote the interval
   # the actual text displayed to the user is controlled in the language file
@@ -61,6 +61,7 @@ class RecurringTask < ActiveRecord::Base
   # cannot validate presence of issue if want to use other features; requiring presence of fixed_schedule requires it to be true
 
   validates_associated :issue # just in case we build in functionality to add an issue at the same time, verify the issue is ok  
+  validate :recur_based_on_start_date_only_on_fixed
   
   # text for the interval name
   def interval_localized_name
@@ -332,6 +333,8 @@ private
     if issue.nil? 
       logger.error "Issue is nil for recurrence #{id}."
       Date.today
+    elsif recur_based_on_start_date?
+      issue.start_date
     elsif fixed_schedule and !issue.due_date.nil? 
       issue.due_date
     elsif !issue.respond_to?('closed_on') # closed_on introduced in Redmine 2.3, ref http://www.redmine.org/issues/824
@@ -340,6 +343,12 @@ private
       issue.updated_on
     else 
       issue.closed_on 
+    end
+  end
+
+  def recur_based_on_start_date_only_on_fixed
+    if !fixed_schedule && recur_based_on_start_date?
+      errors.add(:recur_based_on_start_date, l(:error_unfixed_and_based_on_start_date))
     end
   end
 end
