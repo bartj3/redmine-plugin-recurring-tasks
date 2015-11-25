@@ -1,3 +1,8 @@
+<% content_for :header_tags do %>
+  <%= javascript_include_tag 'recurring_tasks.js', :plugin => 'recurring_tasks' %>
+  <%= stylesheet_link_tag 'recurring_tasks.css', :plugin => 'recurring_tasks'%>
+<% end %>
+
 <%= labelled_form_for rt, :url => { :action => next_step, :id=>rt } do |f| %>
 <div class="box tabular"> 
     <%= error_messages_for 'recurring_task' %>
@@ -12,7 +17,7 @@
       <p><%= f.select 'interval_modifier', rt.get_modifiers_descriptions.collect{|k,v| [v, k]} %></p>
     <% end -%>
     <p><%= f.check_box :fixed_schedule %></p>
-    <p><%= f.check_box :recur_based_on_start_date %></p>
+    <p class="recur_based_on_start_date"><%= f.check_box :recur_based_on_start_date %></p>
     <p><%= f.check_box :recur_subtasks %></p>
   </div>
   <%= f.submit %>
