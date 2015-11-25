@@ -5,7 +5,7 @@ class RecurringTask < ActiveRecord::Base
   belongs_to :issue, :foreign_key => 'current_issue_id'
   has_one :project, :through => :issue
 
-  attr_accessible :id, :current_issue_id, :interval_number, :interval_modifier, :interval_unit, :fixed_schedule # list all fields that you want to be accessible here
+  attr_accessible :id, :current_issue_id, :interval_number, :interval_modifier, :interval_unit, :fixed_schedule, :recur_subtasks, :recur_based_on_start_date# list all fields that you want to be accessible here
   
   # these are the flags used in the database to denote the interval
   # the actual text displayed to the user is controlled in the language file
@@ -75,6 +75,7 @@ class RecurringTask < ActiveRecord::Base
   # cannot validate presence of issue if want to use other features; requiring presence of fixed_schedule requires it to be true
 
   validates_associated :issue # just in case we build in functionality to add an issue at the same time, verify the issue is ok  
+  validate :recur_based_on_start_date_only_on_fixed
   
   # text for the interval name
   def interval_localized_name
@@ -183,13 +184,6 @@ class RecurringTask < ActiveRecord::Base
     DAY_MODIFIERS_LOCALIZED
   end
   
-  
-  
-  def self.find_by_issue issue
-    # it's possible there is more than one recurrence associated with an issue
-    RecurringTask.where(:current_issue_id => issue.id)
-  end
-  
   # retrieve all recurring tasks given a project
   def self.all_for_project project
     if project.nil? then all else RecurringTask.includes(:issue).where("issues.project_id" => project.id) end
@@ -296,7 +290,22 @@ class RecurringTask < ActiveRecord::Base
 
       if Setting.plugin_recurring_tasks['reopen_issue'] != "1"
         # duplicate issue; cloning comes after setting the user so the author is set correctly (#89)
-        new_issue = issue.copy
+        new_issue = issue.copy nil, :subtasks => recur_subtasks?
+        new_issue.save!
+      end
+
+      if recur_subtasks?
+        new_issue.reload.children.each do |subtask|
+          subtask_offset = (next_scheduled_recurrence - timespan) - issue.start_date
+          subtask_timespan = subtask.due_date - subtask.start_date rescue 0
+          subtask.start_date = subtask.start_date + subtask_offset
+          subtask.due_date = subtask.start_date + subtask_timespan
+          subtask.done_ratio = 0
+          subtask.status = recurring_issue_default_status
+          subtask.save!
+        end
+
+        new_issue.reload
       end
 
       new_issue.due_date = next_scheduled_recurrence #41 previous_date_for_recurrence + recurrence_pattern
@@ -304,6 +313,7 @@ class RecurringTask < ActiveRecord::Base
       new_issue.done_ratio = 0
       new_issue.status = recurring_issue_default_status
       new_issue.save!
+
       puts "#{l(:recurring_task_created)} #{issue.id}: #{issue.subj_date} => #{new_issue.id}: #{new_issue.subj_date}"
     
       self.issue = new_issue
@@ -338,10 +348,6 @@ class RecurringTask < ActiveRecord::Base
     "#{i} (#{l(:label_recurrence_pattern)} #{interval_number} #{interval_unit}s " + (:fixed_schedule ? l(:label_recurs_fixed) : l(:label_recurs_dependent)) + ")"
   end
   
-  def to_s_long
-    "#{to_s}. #{l(:label_belongs_to_project)} #{:issue.project}. #{l(:label_assigned_to)} #{:issue.assigned_to_id}"
-  end
-  
   # for each recurring task, check whether to create a new one
   def self.add_recurrences!
     RecurringTask.all.each do |task|
@@ -357,6 +363,8 @@ private
     if issue.nil? 
       logger.error "Issue is nil for recurrence #{id}."
       Date.today
+    elsif recur_based_on_start_date?
+      issue.start_date
     elsif fixed_schedule and !issue.due_date.nil? 
       issue.due_date
     elsif !issue.respond_to?('closed_on') # closed_on introduced in Redmine 2.3, ref http://www.redmine.org/issues/824
@@ -365,6 +373,12 @@ private
       issue.updated_on.to_date
     else 
       issue.closed_on.to_date
+    end
+  end
+
+  def recur_based_on_start_date_only_on_fixed
+    if !fixed_schedule && recur_based_on_start_date?
+      errors.add(:recur_based_on_start_date, l(:error_unfixed_and_based_on_start_date))
     end
   end
 end

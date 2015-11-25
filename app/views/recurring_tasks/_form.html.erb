@@ -15,6 +15,8 @@
     <p class='day_interval_modifier'><%= f.select 'interval_modifier', rt.day_modifiers_descriptions.collect{|k,v| [v, k]}, {}, :disabled => true %></p>
     <p class='month_interval_modifier'><%= f.select 'interval_modifier', rt.month_modifiers_descriptions.collect{|k,v| [v, k]}, {}, :disabled => true %></p>
     <p><%= f.check_box :fixed_schedule %></p>
+    <p class="recur_based_on_start_date"><%= f.check_box :recur_based_on_start_date %></p>
+    <p><%= f.check_box :recur_subtasks %></p>
   </div>
   <%= f.submit %>
   <%= link_to l(:button_cancel), :back %>
