@@ -11,3 +11,10 @@ fixed_working_day_recurrence:
   interval_number: 1
   interval_unit: d
   interval_modifier: dwd
+
+fixed_weekly_recurrence:
+  issue: weekly_issue
+  recur_based_on_start_date: true
+  fixed_schedule: true
+  interval_number: 1
+  interval_unit: w

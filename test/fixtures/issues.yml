@@ -9,3 +9,15 @@ basic_issue:
   rgt: 2
   start_date: <%= 2.days.ago.to_s(:db) %>
   due_date: <%= 1.day.ago.to_s(:db) %>
+
+weekly_issue:
+  subject: weekly issue
+  tracker_id: 1
+  project_id: 1
+  status_id: 1
+  priority_id: 4
+  author_id: 1
+  lft: 1
+  rgt: 2
+  start_date: <%= Date.today.beginning_of_week %>
+  due_date: <%= Date.today.end_of_week %>
