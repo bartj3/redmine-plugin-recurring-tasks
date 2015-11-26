@@ -223,7 +223,9 @@ class RecurringTask < ActiveRecord::Base
 
     # 41
     # if(fixed_schedule and (previous_date_for_recurrence + recurrence_pattern) <= (Time.now.to_date + 1.day)) then true else issue.closed? end
-    if fixed_schedule
+    if recur_based_on_start_date?
+      next_scheduled_recurrence <= Time.now.to_date
+    elsif fixed_schedule
       previous_date_for_recurrence <= Time.now.to_date # TODO add a day?
     else
       issue.closed?

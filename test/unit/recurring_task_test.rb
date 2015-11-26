@@ -26,4 +26,16 @@ class RecurringTaskTest < ActiveSupport::TestCase
     task.update(recur_based_on_start_date: true)
     assert_equal task.next_scheduled_recurrence, task.issue.start_date+10.days
   end
+
+  def test_weekly_recurrence_based_on_start_date
+    task = RecurringTask.find fixture(:fixed_weekly_recurrence)
+
+    Timecop.freeze(Date.today.beginning_of_week+5.days) do
+      assert_equal task.need_to_recur?, false
+    end
+
+    Timecop.freeze(Date.today.beginning_of_week+11.days) do
+      assert_equal task.need_to_recur?, true
+    end
+  end
 end

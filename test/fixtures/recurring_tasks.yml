@@ -4,3 +4,10 @@ fixed_daily_recurrence:
   interval_modifier: mdff
   interval_number: 1
   interval_unit: d
+
+fixed_weekly_recurrence:
+  issue: weekly_issue
+  recur_based_on_start_date: true
+  fixed_schedule: true
+  interval_number: 1
+  interval_unit: w
