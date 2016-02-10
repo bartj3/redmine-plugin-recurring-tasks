@@ -51,4 +51,18 @@ class RecurringTaskTest < ActiveSupport::TestCase
       assert_equal task.need_to_recur?, true
     end
   end
+
+  def test_weekly_recurrence_based_on_start_date_backlog
+    task = RecurringTask.find fixture(:fixed_weekly_recurrence)
+
+    Timecop.freeze(Date.today.beginning_of_week+5.days) do
+      assert_equal task.need_to_recur?, false
+    end
+
+    Timecop.freeze(Date.today.beginning_of_week+11.days) do
+      assert_difference -> { Issue.count }, 1 do
+        task.recur_issue_if_needed!
+      end
+    end
+  end
 end
