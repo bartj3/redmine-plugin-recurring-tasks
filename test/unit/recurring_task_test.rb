@@ -75,4 +75,13 @@ class RecurringTaskTest < ActiveSupport::TestCase
     task.recur_issue_if_needed!
     assert_nil task.issue.closed_on
   end
+
+  def test_removes_assignee
+    task = RecurringTask.find fixture(:fixed_daily_recurrence)
+    task.issue.update assigned_to: User.first
+
+    assert_not_nil task.issue.assigned_to
+    task.recur_issue_if_needed!
+    assert_nil task.issue.assigned_to
+  end
 end

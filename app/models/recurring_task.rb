@@ -305,6 +305,7 @@ class RecurringTask < ActiveRecord::Base
           subtask.done_ratio = 0
           subtask.status = recurring_issue_default_status
           subtask.closed_on = nil
+          subtask.assigned_to = nil
           subtask.save!
         end
 
@@ -314,9 +315,10 @@ class RecurringTask < ActiveRecord::Base
       new_issue.due_date = next_scheduled_recurrence #41 previous_date_for_recurrence + recurrence_pattern
       new_issue.start_date = new_issue.due_date - timespan
       new_issue.done_ratio = 0
-      new_issue.assigned_to = nil
       new_issue.status = recurring_issue_default_status
       new_issue.closed_on = nil
+      new_issue.assigned_to = nil
+
       new_issue.save!
 
       puts "#{l(:recurring_task_created)} #{issue.id}: #{issue.subj_date} => #{new_issue.id}: #{new_issue.subj_date}"
