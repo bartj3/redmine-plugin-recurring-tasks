@@ -312,8 +312,13 @@ class RecurringTask < ActiveRecord::Base
         new_issue.reload
       end
 
-      new_issue.due_date = next_scheduled_recurrence #41 previous_date_for_recurrence + recurrence_pattern
-      new_issue.start_date = new_issue.due_date - timespan
+      if recur_based_on_start_date?
+        new_issue.start_date = next_scheduled_recurrence
+        new_issue.due_date = new_issue.start_date + timespan
+      else
+        new_issue.due_date = next_scheduled_recurrence #41 previous_date_for_recurrence + recurrence_pattern
+        new_issue.start_date = new_issue.due_date - timespan
+      end
       new_issue.done_ratio = 0
       new_issue.status = recurring_issue_default_status
       new_issue.closed_on = nil

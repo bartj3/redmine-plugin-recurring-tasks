@@ -52,8 +52,22 @@ class RecurringTaskTest < ActiveSupport::TestCase
     end
   end
 
+  def test_weekly_recurrence_based_on_start_date_with_closed_issue
+    task = RecurringTask.find fixture(:fixed_weekly_recurrence)
+    task.issue.close!
+    old_issue = task.issue
+
+    Timecop.freeze(Date.today.beginning_of_week+11.days) do
+      task.recur_issue_if_needed!
+    end
+
+    new_issue = task.issue
+
+    assert_equal old_issue.start_date+1.week, new_issue.start_date
+    assert_equal old_issue.due_date+1.week, new_issue.due_date
+  end
+
   def test_weekly_recurrence_based_on_start_date_backlog
-    skip
     task = RecurringTask.find fixture(:fixed_weekly_recurrence)
 
     Timecop.freeze(Date.today.beginning_of_week+5.days) do
